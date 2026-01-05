@@ -4,6 +4,7 @@ import { CELL_COLORS } from '../constants/colors';
 
 interface Props {
   cell: CellType;
+  size: number;
   onPress: (cell: CellType) => void;
   onPressIn: () => void;
   onPressOut: () => void;
@@ -12,6 +13,7 @@ interface Props {
 
 export default function Cell({
   cell,
+  size,
   onPress,
   onPressIn,
   onPressOut,
@@ -29,16 +31,18 @@ export default function Cell({
       }}
       style={[
         styles.cell,
-        { backgroundColor: CELL_COLORS[cell.type] },
-      ]}
+        {
+            backgroundColor: CELL_COLORS[cell.type],
+            width: size,
+            height: size,
+        },
+        ]}
     />
   );
 }
 
 const styles = StyleSheet.create({
   cell: {
-    width: 30,
-    height: 30,
     borderWidth: 0.5,
     borderColor: '#00ffcc',
   },

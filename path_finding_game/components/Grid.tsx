@@ -4,6 +4,7 @@ import { Cell as CellType } from '../types/grid';
 
 interface Props {
   grid: CellType[][];
+  cellSize: number;
   onCellPress: (cell: CellType) => void;
   onPressIn: () => void;
   onPressOut: () => void;
@@ -12,6 +13,7 @@ interface Props {
 
 export default function Grid({
   grid,
+  cellSize,
   onCellPress,
   onPressIn,
   onPressOut,
@@ -25,6 +27,7 @@ export default function Grid({
             <Cell
               key={`${cell.row}-${cell.col}`}
               cell={cell}
+              size={cellSize}
               onPress={onCellPress}
               onPressIn={onPressIn}
               onPressOut={onPressOut}
@@ -39,7 +42,7 @@ export default function Grid({
 
 const styles = StyleSheet.create({
   grid: {
-    flexDirection: 'column',
+    padding: 10,
   },
   row: {
     flexDirection: 'row',
