@@ -9,6 +9,10 @@ interface Props {
   allowDiagonal: boolean;
   setAllowDiagonal: (value: boolean) => void;
   isSmallScreen: boolean;
+  isRunning: boolean;
+  runCompleted: boolean;
+  onPlay: () => void;
+  onClear: () => void;
 }
 
 const ALGORITHMS = ['A*', 'Dijkstra', 'BFS', 'DFS'];
@@ -21,6 +25,10 @@ export default function ControlPanel({
   allowDiagonal,
   setAllowDiagonal,
   isSmallScreen,
+  isRunning,
+  runCompleted,
+  onPlay,
+  onClear,
 }: Props) {
   return (
     <View
@@ -80,13 +88,36 @@ export default function ControlPanel({
             </Pressable>
 
             {/* Play */}
-            <Pressable style={styles.playButton}>
-            <Text style={styles.playText}>PLAY</Text>
+            <Pressable
+                onPress={onPlay}
+                disabled={isRunning}
+                style={[
+                    styles.playButton,
+                    isRunning && { opacity: 0.5 },
+                ]}
+                >
+                <Text style={styles.playText}>
+                    {isRunning
+                        ? 'RUNNING...'
+                        : runCompleted
+                            ? 'CLEAR'
+                            : 'PLAY'
+                    }
+                </Text>
             </Pressable>
 
             {/* Reset */}
-            <Pressable style={styles.resetButton}>
-            <Text style={styles.buttonText}>RESET</Text>
+            <Pressable
+                onPress={onClear}
+                disabled={isRunning}
+                style={[
+                    styles.resetButton,
+                    isRunning && { opacity: 0.5 },
+                ]}
+                >
+                <Text style={styles.buttonText}>
+                    {'RESET'}
+                </Text>
             </Pressable>
         </View>
     </View>

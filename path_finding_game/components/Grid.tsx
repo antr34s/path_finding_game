@@ -9,6 +9,7 @@ interface Props {
   onPressIn: () => void;
   onPressOut: () => void;
   isPressing: boolean;
+  isRunning: boolean;
 }
 
 export default function Grid({
