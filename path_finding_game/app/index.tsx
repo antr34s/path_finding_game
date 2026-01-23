@@ -48,6 +48,34 @@ export default function HomeScreen() {
       Math.min(cellSizeFromWidth, cellSizeFromHeight)
   );
   
+  const buildRequest = () => {
+    let start = null;
+    let end = null;
+    const barriers: { x: number; y: number }[] = [];
+
+    grid.forEach(row =>
+      row.forEach(cell => {
+        if (cell.type === 'start') {
+          start = { x: cell.row, y: cell.col };
+        }
+        if (cell.type === 'end') {
+          end = { x: cell.row, y: cell.col };
+        }
+        if (cell.type === 'obstacle') {
+          barriers.push({ x: cell.row, y: cell.col });
+        }
+      })
+    );
+
+    return {
+      gridSize: GRID_SIZE,
+      start,
+      end,
+      barriers,
+      algorithm: algorithm === 'A*' ? 'A_STAR' : algorithm,
+    };
+  };
+
   const resetGrid = () => {
     setIsRunning(false);
     setRunCompleted(false);
@@ -82,25 +110,75 @@ export default function HomeScreen() {
 
     setIsRunning(true);
 
-    // Fake visited cells
-    const visited: Cell[] = [];
-    for (let i = 5; i < 20; i++) {
-      visited.push({ row: i, col: i, type: 'visited' });
-    }
+    // // Fake visited cells
+    // const visited: Cell[] = [];
+    // for (let i = 5; i < 20; i++) {
+    //   visited.push({ row: i, col: i, type: 'visited' });
+    // }
 
-    // Fake path
-    const path: Cell[] = [];
-    for (let i = 20; i < 25; i++) {
-      path.push({ row: i, col: i, type: 'path' });
-    }
+    // // Fake path
+    // const path: Cell[] = [];
+    // for (let i = 20; i < 25; i++) {
+    //   path.push({ row: i, col: i, type: 'path' });
+    // }
 
-    await animateCells(visited, 'visited');
-    await animateCells(path, 'path');
-    setRunCompleted(true);
-    setInstruction('Visualization complete');
-    setIsRunning(false);
+    // await animateCells(visited, 'visited');
+    // await animateCells(path, 'path');
+    // setRunCompleted(true);
+    // setInstruction('Visualization complete');
+    // setIsRunning(false);
+    try {
+      const response = await fetch('http://localhost:8080/api/pathfind', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(buildRequest()),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to run algorithm');
+      }
+
+      const data = await response.json();
+
+      await animatePath(data.path);
+
+      setRunCompleted(true);
+      setInstruction(
+        data.pathFound ? 'Path found!' : 'No path found'
+      );
+    } catch (error) {
+      console.error(error);
+      setInstruction('Error running algorithm');
+    } finally {
+      setIsRunning(false);
+    }
   };
 
+
+  const animatePath = async (
+    path: { x: number; y: number }[]
+  ) => {
+    for (const point of path) {
+      setGrid(prev =>
+        prev.map(row =>
+          row.map(cell =>
+            cell.row === point.x && cell.col === point.y
+            ? (cell.type !== 'start' && cell.type !== 'end'
+                ? { ...cell, type: 'path' }
+                : cell
+              )
+            : cell
+          )
+        )
+      );
+
+      await new Promise(res =>
+        setTimeout(res, 1)
+      );
+    }
+  };
   const animateCells = async (
     cells: Cell[],
     type: CellType

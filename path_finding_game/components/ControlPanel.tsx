@@ -15,7 +15,7 @@ interface Props {
   onClear: () => void;
 }
 
-const ALGORITHMS = ['A*', 'Dijkstra', 'BFS', 'DFS'];
+const ALGORITHMS = ['A*', 'DIJKSTRA', 'BFS', 'DFS'];
 
 export default function ControlPanel({
   algorithm,
@@ -178,7 +178,7 @@ const styles = StyleSheet.create({
         textAlign: 'center',
     },
     button: {
-        padding: 8,
+        padding: 6,
         marginVertical: 4,
         borderWidth: 1,
         borderColor: '#00ffcc',
