@@ -4,6 +4,7 @@ import java.util.List;
 
 public class PathfindingResponse {
     private List<PathfindingRequest.Point> path;
+    private List<PathfindingRequest.Point> visitedPath;
     private int nodesExplored;
     private long executionTimeMs;
     private boolean pathFound;
@@ -11,9 +12,10 @@ public class PathfindingResponse {
 
     public PathfindingResponse() {}
 
-    public PathfindingResponse(List<PathfindingRequest.Point> path, int nodesExplored,
-                              long executionTimeMs, boolean pathFound, String algorithm) {
+    public PathfindingResponse(List<PathfindingRequest.Point> path, List<PathfindingRequest.Point> visitedPath,
+                              int nodesExplored, long executionTimeMs, boolean pathFound, String algorithm) {
         this.path = path;
+        this.visitedPath = visitedPath;
         this.nodesExplored = nodesExplored;
         this.executionTimeMs = executionTimeMs;
         this.pathFound = pathFound;
@@ -58,5 +60,13 @@ public class PathfindingResponse {
 
     public void setAlgorithm(String algorithm) {
         this.algorithm = algorithm;
+    }
+
+    public List<PathfindingRequest.Point> getVisitedPath() {
+        return visitedPath;
+    }
+
+    public void setVisitedPath(List<PathfindingRequest.Point> visitedPath) {
+        this.visitedPath = visitedPath;
     }
 }

@@ -10,6 +10,7 @@ import java.util.*;
 public class DijkstraService implements PathfindingService {
 
     private static final int[][] DIRECTIONS = {{0, 1}, {1, 0}, {0, -1}, {-1, 0}};
+    private final Random random = new Random();
 
     private static class Node implements Comparable<Node> {
         Point point;
@@ -37,6 +38,7 @@ public class DijkstraService implements PathfindingService {
         Map<Point, Integer> distances = new HashMap<>();
         Map<Point, Point> parent = new HashMap<>();
         Set<Point> visited = new HashSet<>();
+        List<Point> visitedPath = new ArrayList<>();
 
         pq.offer(new Node(start, 0));
         distances.put(start, 0);
@@ -53,34 +55,47 @@ public class DijkstraService implements PathfindingService {
             }
 
             visited.add(currentPoint);
+            visitedPath.add(currentPoint);
             nodesExplored++;
 
             if (currentPoint.equals(end)) {
                 List<Point> path = reconstructPath(parent, start, end);
-                return new PathfindingResponse(path, nodesExplored, 0, true, getAlgorithmName());
+                return new PathfindingResponse(path, visitedPath, nodesExplored, 0, true, getAlgorithmName());
             }
 
-            for (int[] direction : DIRECTIONS) {
-                int newX = currentPoint.getX() + direction[0];
-                int newY = currentPoint.getY() + direction[1];
-                Point neighbor = new Point(newX, newY);
+            List<Point> neighbors = getShuffledNeighbors(currentPoint, gridSize, barriers, visited, distances);
 
-                if (isValid(newX, newY, gridSize) &&
-                    !barriers.contains(neighbor) &&
-                    !visited.contains(neighbor)) {
+            for (Point neighbor : neighbors) {
+                int newDistance = distances.get(currentPoint) + 1;
 
-                    int newDistance = distances.get(currentPoint) + 1;
-
-                    if (!distances.containsKey(neighbor) || newDistance < distances.get(neighbor)) {
-                        distances.put(neighbor, newDistance);
-                        parent.put(neighbor, currentPoint);
-                        pq.offer(new Node(neighbor, newDistance));
-                    }
+                if (!distances.containsKey(neighbor) || newDistance < distances.get(neighbor)) {
+                    distances.put(neighbor, newDistance);
+                    parent.put(neighbor, currentPoint);
+                    pq.offer(new Node(neighbor, newDistance));
                 }
             }
         }
 
-        return new PathfindingResponse(new ArrayList<>(), nodesExplored, 0, false, getAlgorithmName());
+        return new PathfindingResponse(new ArrayList<>(), visitedPath, nodesExplored, 0, false, getAlgorithmName());
+    }
+
+    private List<Point> getShuffledNeighbors(Point current, int gridSize, Set<Point> barriers, Set<Point> visited, Map<Point, Integer> distances) {
+        List<Point> neighbors = new ArrayList<>();
+
+        for (int[] direction : DIRECTIONS) {
+            int newX = current.getX() + direction[0];
+            int newY = current.getY() + direction[1];
+            Point neighbor = new Point(newX, newY);
+
+            if (isValid(newX, newY, gridSize) &&
+                !barriers.contains(neighbor) &&
+                !visited.contains(neighbor)) {
+                neighbors.add(neighbor);
+            }
+        }
+
+        Collections.shuffle(neighbors, random);
+        return neighbors;
     }
 
     private boolean isValid(int x, int y, int gridSize) {

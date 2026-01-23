@@ -10,6 +10,7 @@ import java.util.*;
 public class BFSService implements PathfindingService {
 
     private static final int[][] DIRECTIONS = {{0, 1}, {1, 0}, {0, -1}, {-1, 0}};
+    private final Random random = new Random();
 
     @Override
     public PathfindingResponse execute(PathfindingRequest request) {
@@ -21,9 +22,11 @@ public class BFSService implements PathfindingService {
         Queue<Point> queue = new LinkedList<>();
         Map<Point, Point> parent = new HashMap<>();
         Set<Point> visited = new HashSet<>();
+        List<Point> visitedPath = new ArrayList<>();
 
         queue.offer(start);
         visited.add(start);
+        visitedPath.add(start);
         parent.put(start, null);
 
         int nodesExplored = 0;
@@ -34,26 +37,39 @@ public class BFSService implements PathfindingService {
 
             if (current.equals(end)) {
                 List<Point> path = reconstructPath(parent, start, end);
-                return new PathfindingResponse(path, nodesExplored, 0, true, getAlgorithmName());
+                return new PathfindingResponse(path, visitedPath, nodesExplored, 0, true, getAlgorithmName());
             }
 
-            for (int[] direction : DIRECTIONS) {
-                int newX = current.getX() + direction[0];
-                int newY = current.getY() + direction[1];
-                Point neighbor = new Point(newX, newY);
+            List<Point> neighbors = getShuffledNeighbors(current, gridSize, barriers, visited);
 
-                if (isValid(newX, newY, gridSize) &&
-                    !barriers.contains(neighbor) &&
-                    !visited.contains(neighbor)) {
-
-                    queue.offer(neighbor);
-                    visited.add(neighbor);
-                    parent.put(neighbor, current);
-                }
+            for (Point neighbor : neighbors) {
+                queue.offer(neighbor);
+                visited.add(neighbor);
+                visitedPath.add(neighbor);
+                parent.put(neighbor, current);
             }
         }
 
-        return new PathfindingResponse(new ArrayList<>(), nodesExplored, 0, false, getAlgorithmName());
+        return new PathfindingResponse(new ArrayList<>(), visitedPath, nodesExplored, 0, false, getAlgorithmName());
+    }
+
+    private List<Point> getShuffledNeighbors(Point current, int gridSize, Set<Point> barriers, Set<Point> visited) {
+        List<Point> neighbors = new ArrayList<>();
+
+        for (int[] direction : DIRECTIONS) {
+            int newX = current.getX() + direction[0];
+            int newY = current.getY() + direction[1];
+            Point neighbor = new Point(newX, newY);
+
+            if (isValid(newX, newY, gridSize) &&
+                !barriers.contains(neighbor) &&
+                !visited.contains(neighbor)) {
+                neighbors.add(neighbor);
+            }
+        }
+
+        Collections.shuffle(neighbors, random);
+        return neighbors;
     }
 
     private boolean isValid(int x, int y, int gridSize) {

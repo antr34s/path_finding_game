@@ -10,7 +10,9 @@ import java.util.*;
 public class DFSService implements PathfindingService {
 
     private static final int[][] DIRECTIONS = {{0, 1}, {1, 0}, {0, -1}, {-1, 0}};
+    private final Random random = new Random();
     private int nodesExplored;
+    private List<Point> visitedPath;
 
     @Override
     public PathfindingResponse execute(PathfindingRequest request) {
@@ -21,16 +23,18 @@ public class DFSService implements PathfindingService {
 
         Set<Point> visited = new HashSet<>();
         Map<Point, Point> parent = new HashMap<>();
+        visitedPath = new ArrayList<>();
         nodesExplored = 0;
 
+        visitedPath.add(start);
         boolean found = dfs(start, end, gridSize, barriers, visited, parent);
 
         if (found) {
             List<Point> path = reconstructPath(parent, start, end);
-            return new PathfindingResponse(path, nodesExplored, 0, true, getAlgorithmName());
+            return new PathfindingResponse(path, visitedPath, nodesExplored, 0, true, getAlgorithmName());
         }
 
-        return new PathfindingResponse(new ArrayList<>(), nodesExplored, 0, false, getAlgorithmName());
+        return new PathfindingResponse(new ArrayList<>(), visitedPath, nodesExplored, 0, false, getAlgorithmName());
     }
 
     private boolean dfs(Point current, Point end, int gridSize, Set<Point> barriers,
@@ -43,6 +47,22 @@ public class DFSService implements PathfindingService {
         visited.add(current);
         nodesExplored++;
 
+        List<Point> neighbors = getShuffledNeighbors(current, gridSize, barriers, visited);
+
+        for (Point neighbor : neighbors) {
+            parent.put(neighbor, current);
+            visitedPath.add(neighbor);
+            if (dfs(neighbor, end, gridSize, barriers, visited, parent)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private List<Point> getShuffledNeighbors(Point current, int gridSize, Set<Point> barriers, Set<Point> visited) {
+        List<Point> neighbors = new ArrayList<>();
+
         for (int[] direction : DIRECTIONS) {
             int newX = current.getX() + direction[0];
             int newY = current.getY() + direction[1];
@@ -51,15 +71,12 @@ public class DFSService implements PathfindingService {
             if (isValid(newX, newY, gridSize) &&
                 !barriers.contains(neighbor) &&
                 !visited.contains(neighbor)) {
-
-                parent.put(neighbor, current);
-                if (dfs(neighbor, end, gridSize, barriers, visited, parent)) {
-                    return true;
-                }
+                neighbors.add(neighbor);
             }
         }
 
-        return false;
+        Collections.shuffle(neighbors, random);
+        return neighbors;
     }
 
     private boolean isValid(int x, int y, int gridSize) {

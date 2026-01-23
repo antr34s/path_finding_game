@@ -10,6 +10,7 @@ import java.util.*;
 public class AStarService implements PathfindingService {
 
     private static final int[][] DIRECTIONS = {{0, 1}, {1, 0}, {0, -1}, {-1, 0}};
+    private final Random random = new Random();
 
     private static class Node implements Comparable<Node> {
         Point point;
@@ -39,6 +40,7 @@ public class AStarService implements PathfindingService {
         Map<Point, Integer> gScore = new HashMap<>();
         Map<Point, Point> parent = new HashMap<>();
         Set<Point> closedSet = new HashSet<>();
+        List<Point> visitedPath = new ArrayList<>();
 
         int startH = heuristic(start, end);
         openSet.offer(new Node(start, 0, startH));
@@ -56,36 +58,49 @@ public class AStarService implements PathfindingService {
             }
 
             closedSet.add(currentPoint);
+            visitedPath.add(currentPoint);
             nodesExplored++;
 
             if (currentPoint.equals(end)) {
                 List<Point> path = reconstructPath(parent, start, end);
-                return new PathfindingResponse(path, nodesExplored, 0, true, getAlgorithmName());
+                return new PathfindingResponse(path, visitedPath, nodesExplored, 0, true, getAlgorithmName());
             }
 
-            for (int[] direction : DIRECTIONS) {
-                int newX = currentPoint.getX() + direction[0];
-                int newY = currentPoint.getY() + direction[1];
-                Point neighbor = new Point(newX, newY);
+            List<Point> neighbors = getShuffledNeighbors(currentPoint, gridSize, barriers, closedSet, gScore, end);
 
-                if (isValid(newX, newY, gridSize) &&
-                    !barriers.contains(neighbor) &&
-                    !closedSet.contains(neighbor)) {
+            for (Point neighbor : neighbors) {
+                int tentativeGScore = gScore.get(currentPoint) + 1;
 
-                    int tentativeGScore = gScore.get(currentPoint) + 1;
-
-                    if (!gScore.containsKey(neighbor) || tentativeGScore < gScore.get(neighbor)) {
-                        gScore.put(neighbor, tentativeGScore);
-                        int h = heuristic(neighbor, end);
-                        int f = tentativeGScore + h;
-                        parent.put(neighbor, currentPoint);
-                        openSet.offer(new Node(neighbor, tentativeGScore, f));
-                    }
+                if (!gScore.containsKey(neighbor) || tentativeGScore < gScore.get(neighbor)) {
+                    gScore.put(neighbor, tentativeGScore);
+                    int h = heuristic(neighbor, end);
+                    int f = tentativeGScore + h;
+                    parent.put(neighbor, currentPoint);
+                    openSet.offer(new Node(neighbor, tentativeGScore, f));
                 }
             }
         }
 
-        return new PathfindingResponse(new ArrayList<>(), nodesExplored, 0, false, getAlgorithmName());
+        return new PathfindingResponse(new ArrayList<>(), visitedPath, nodesExplored, 0, false, getAlgorithmName());
+    }
+
+    private List<Point> getShuffledNeighbors(Point current, int gridSize, Set<Point> barriers, Set<Point> closedSet, Map<Point, Integer> gScore, Point end) {
+        List<Point> neighbors = new ArrayList<>();
+
+        for (int[] direction : DIRECTIONS) {
+            int newX = current.getX() + direction[0];
+            int newY = current.getY() + direction[1];
+            Point neighbor = new Point(newX, newY);
+
+            if (isValid(newX, newY, gridSize) &&
+                !barriers.contains(neighbor) &&
+                !closedSet.contains(neighbor)) {
+                neighbors.add(neighbor);
+            }
+        }
+
+        Collections.shuffle(neighbors, random);
+        return neighbors;
     }
 
     private int heuristic(Point a, Point b) {
