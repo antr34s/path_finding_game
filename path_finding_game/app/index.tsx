@@ -142,6 +142,7 @@ export default function HomeScreen() {
 
       const data = await response.json();
 
+      await animateVisited(data.visitedPath);
       await animatePath(data.path);
 
       setRunCompleted(true);
@@ -175,7 +176,28 @@ export default function HomeScreen() {
       );
 
       await new Promise(res =>
-        setTimeout(res, 1)
+        setTimeout(res, 101 - speed)
+      );
+    }
+  };
+  const animateVisited = async (
+    visited: { x: number; y: number }[]
+  ) => {
+    for (const point of visited) {
+      setGrid(prev =>
+        prev.map(row =>
+          row.map(cell =>
+            cell.row === point.x && cell.col === point.y
+              ? (cell.type === 'empty'
+                  ? { ...cell, type: 'visited' }
+                  : cell)
+              : cell
+          )
+        )
+      );
+
+      await new Promise(res =>
+        setTimeout(res, 101 - speed)
       );
     }
   };
