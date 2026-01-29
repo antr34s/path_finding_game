@@ -73,6 +73,7 @@ export default function HomeScreen() {
       end,
       barriers,
       algorithm: algorithm === 'A*' ? 'A_STAR' : algorithm,
+      allowDiagonal,
     };
   };
 
