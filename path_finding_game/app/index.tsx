@@ -52,7 +52,7 @@ export default function HomeScreen() {
   const buildRequest = () => {
     let start = null;
     let end = null;
-    const barriers: { x: number; y: number }[] = [];
+    const barriers: { x: number; y: number; weight: number }[] = [];
 
     grid.forEach(row =>
       row.forEach(cell => {
@@ -63,7 +63,11 @@ export default function HomeScreen() {
           end = { x: cell.row, y: cell.col };
         }
         if (cell.type === 'obstacle') {
-          barriers.push({ x: cell.row, y: cell.col });
+          barriers.push({
+            x: cell.row,
+            y: cell.col,
+            weight: cell.weight === Infinity ? -1 : cell.weight,
+          });
         }
       })
     );
@@ -190,7 +194,7 @@ export default function HomeScreen() {
         prev.map(row =>
           row.map(cell =>
             cell.row === point.x && cell.col === point.y
-              ? (cell.type === 'empty'
+              ? (cell.type === 'empty' || cell.type === 'obstacle'
                   ? { ...cell, type: 'visited' }
                   : cell)
               : cell
