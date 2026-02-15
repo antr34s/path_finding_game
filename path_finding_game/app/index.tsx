@@ -1,35 +1,32 @@
-import Title from '../components/Title';
-import InstructionBar from '../components/InstructionBar';
-import { View, StyleSheet, Text, ScrollView } from 'react-native';
-import { useEffect, useState } from 'react';
-import { createGrid } from '../utils/createGrid';
-import { Cell, CellType } from '../types/grid';
-import Grid from '../components/Grid';
-import ControlPanel from '../components/ControlPanel';
-import { useWindowDimensions } from 'react-native';
+import { useState } from 'react';
+import { ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import Grid from '../components/grid/Grid';
+import ControlPanel from '../components/ui/ControlPanel';
+import InstructionBar from '../components/ui/InstructionBar';
+import StatsModal from '../components/ui/StatsModal';
+import Title from '../components/ui/Title';
+import { useGrid } from '../hooks/useGrid';
+import { usePathfinding } from '../hooks/usePathfinding';
 import { GRID_SIZE } from '../utils/createGrid';
-import StatsModal from "../components/StatsModal";
-type RunStats = {
-  algorithm: string;
-  visitedNodes: number;
-  pathLength: number | string;
-  pathWeight: number | string;
-  gridSize: string;
-};
+
 export default function HomeScreen() {
-  const [grid, setGrid] = useState<Cell[][]>([]);
-  const [startSet, setStartSet] = useState(false);
-  const [endSet, setEndSet] = useState(false);
-  const [isPressing, setIsPressing] = useState(false);
-  const [isRunning, setIsRunning] = useState(false);
   const [algorithm, setAlgorithm] = useState('A*');
   const [speed, setSpeed] = useState(50);
   const [selectedWeight, setSelectedWeight] = useState(Infinity);
   const [allowDiagonal, setAllowDiagonal] = useState(false);
-  const [runCompleted, setRunCompleted] = useState(false);
-  const [instruction, setInstruction] = useState(
-    'Place the starting node'
-  );
+
+  const {
+    grid, setGrid, startSet, endSet,
+    isPressing, setIsPressing,
+    handleCellPress, resetGrid, resetPath, buildRequest,
+  } = useGrid(algorithm, allowDiagonal, selectedWeight);
+
+  const {
+    isRunning, runCompleted, instruction,
+    stats, showStats, setShowStats,
+    handleRunOrReset, reset,
+  } = usePathfinding({ grid, setGrid, speed, algorithm, startSet, endSet, buildRequest });
+
   const { width, height } = useWindowDimensions();
   const CELL_BORDER = 0.5;
   const GRID_PADDING = 10;
@@ -43,259 +40,37 @@ export default function HomeScreen() {
     : width - CONTROL_PANEL_WIDTH - GRID_PADDING * 2;
 
   const availableHeight = isSmallScreen
-    ? height - HEADER_HEIGHT - CONTROL_PANEL_HEIGHT - GRID_PADDING * 2 -20
+    ? height - HEADER_HEIGHT - CONTROL_PANEL_HEIGHT - GRID_PADDING * 2 - 20
     : height - HEADER_HEIGHT - GRID_PADDING * 2;
 
-  const cellSizeFromWidth =
-  availableWidth / GRID_SIZE - CELL_BORDER * 2;
-
-  const cellSizeFromHeight =
-    availableHeight / GRID_SIZE - CELL_BORDER * 2;
-
   const cellSize = Math.floor(
-      Math.min(cellSizeFromWidth, cellSizeFromHeight)
+    Math.min(
+      availableWidth / GRID_SIZE - CELL_BORDER * 2,
+      availableHeight / GRID_SIZE - CELL_BORDER * 2
+    )
   );
-  const [showStats, setShowStats] = useState(false);
 
-  const [stats, setStats] = useState<RunStats>({
-    algorithm: "A*",
-    visitedNodes: 0,
-    pathLength: 0,
-    pathWeight: 0,
-    gridSize: `${GRID_SIZE} x ${GRID_SIZE}`,
-  });
-  
-  const buildRequest = () => {
-    let start = null;
-    let end = null;
-    const barriers: { x: number; y: number; weight: number }[] = [];
-
-    grid.forEach(row =>
-      row.forEach(cell => {
-        if (cell.type === 'start') {
-          start = { x: cell.row, y: cell.col };
-        }
-        if (cell.type === 'end') {
-          end = { x: cell.row, y: cell.col };
-        }
-        if (cell.type === 'obstacle') {
-          barriers.push({
-            x: cell.row,
-            y: cell.col,
-            weight: cell.weight === Infinity ? -1 : cell.weight,
-          });
-        }
-      })
-    );
-
-    return {
-      gridSize: GRID_SIZE,
-      start,
-      end,
-      barriers,
-      algorithm: algorithm === 'A*' ? 'A_STAR' : algorithm,
-      allowDiagonal,
-    };
+  const onClear = () => {
+    reset();
+    resetGrid();
   };
 
-  const resetGrid = () => {
-    setIsRunning(false);
-    setRunCompleted(false);
-    setStartSet(false);
-    setEndSet(false);
-    setGrid(createGrid());
-  };
+  const onPlay = () => handleRunOrReset(resetPath);
 
-  const resetPath = () => {
-    setRunCompleted(false);
-
-    setGrid(prev =>
-      prev.map(row =>
-        row.map(cell => ({
-          ...cell,
-          state: undefined,
-        }))
-      )
-    );
-  };
-  const handleRunOrReset = () => {
-    if (runCompleted) {
-      resetPath();
-    } else {
-      runAlgorithm();
-    }
-  };
-  const getBatchSize = () => {
-    if (speed < 20) return 1;
-    if (speed < 40) return 2;
-    if (speed < 60) return 4;
-    if (speed < 80) return 10;
-    if (speed < 95) return 15;
-    return 20;
-  };
-  const runAlgorithm = async () => {
-    if (isRunning) return;
-    if (!startSet || !endSet) return;
-
-    setIsRunning(true);
-
-    try {
-      const response = await fetch('http://localhost:8080/api/pathfind', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(buildRequest()),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to run algorithm');
-      }
-
-      const data = await response.json();
-
-      await animateCellsBatch(data.visitedPath, 'visited');
-      await animateCellsBatch(data.path, 'path');
-
-      setRunCompleted(true);
-      setInstruction(
-        'Press RESET to remove the visited cells or CLEAR to empty the grid'
-      );
-      setIsRunning(false);
-      await new Promise(res => setTimeout(res, 1500));
-      const rawVisited = data.visitedPath.length;
-      const rawPath = data.path.length;
-
-      const adjustedVisited = Math.max(0, rawVisited - 2);
-      const adjustedPathLength =
-        rawPath === 0 ? 0 : Math.max(1, rawPath - 1);
-
-      
-      let calculatedCost = -1;
-
-      data.path.forEach((node: any) => {
-        const cell = grid[node.x][node.y];
-        calculatedCost += cell.weight ?? 1;
-      });
-
-      if (rawPath === 0) {
-        setStats({
-          algorithm: algorithm,
-          visitedNodes: adjustedVisited,
-          pathLength: "No path found",
-          pathWeight: "No path found",
-          gridSize: `${GRID_SIZE} x ${GRID_SIZE}`,
-        });
-      } else {
-        setStats({
-          algorithm: algorithm,
-          visitedNodes: adjustedVisited,
-          pathLength: adjustedPathLength,
-          pathWeight: calculatedCost,
-          gridSize: `${GRID_SIZE} x ${GRID_SIZE}`,
-        });
-      }
-
-      setShowStats(true);
-    } catch (error) {
-      console.error(error);
-      setInstruction('Error running algorithm');
-    } finally {
-      setIsRunning(false);
-    }
-  };
-
-
-  const animateCellsBatch = async (
-    nodes: { x: number; y: number }[],
-    state: 'visited' | 'path'
-  ) => {
-    const batchSize = getBatchSize();
-
-    for (let i = 0; i < nodes.length; i += batchSize) {
-      const batch = nodes.slice(i, i + batchSize);
-
-      setGrid(prev =>
-        prev.map(row =>
-          row.map(cell => {
-            if (cell.type === 'start' || cell.type === 'end') return cell;
-
-            const hit = batch.some(
-              p => p.x === cell.row && p.y === cell.col
-            );
-
-            return hit ? { ...cell, state } : cell;
-          })
-        )
-      );
-
-      await new Promise(res => requestAnimationFrame(res));
-    }
-  };
-
-  useEffect(() => {
-    setGrid(createGrid());
-  }, []);
-  useEffect(() => {
-    if (isRunning) {
-      setInstruction('Visualizing algorithm...');
-      return;
-    }
-
-    if (runCompleted) {
-      setInstruction(
-        'Press RESET to remove the visited cells or CLEAR to empty the grid'
-      );
-      return;
-    }
-
-    if (!startSet) {
-      setInstruction('Click where you want to place the starting point');
-    } else if (!endSet) {
-      setInstruction('Click where you want to place the ending point');
-    } else {
-      setInstruction(
-        "Choose the obstacles' cost on the right side and click to place them or press PLAY"
-      );
-    }
-  }, [startSet, endSet, isRunning, runCompleted]);
-
-  const updateCell = (cell: Cell, newType: CellType) => {
-    setGrid(prev =>
-      prev.map(row =>
-        row.map(c =>
-          c.row === cell.row && c.col === cell.col
-            ? { ...c, type: newType, weight: cell.weight ?? c.weight }
-            : c
-        )
-      )
-    );
-  };
-
-  const handleCellPress = (cell: Cell) => {
-    if (isRunning) return;
-
-    if (!startSet) {
-      updateCell(cell, 'start');
-      setStartSet(true);
-      return;
-    }
-
-    if (!endSet) {
-      updateCell(cell, 'end');
-      setEndSet(true);
-      return;
-    }
-
-    
-    if (cell.type === 'empty') {
-      updateCell({ ...cell, weight: selectedWeight }, 'obstacle');
-      return;
-    }
-
-    if (cell.type === 'obstacle' && !isPressing) {
-      updateCell({ ...cell, weight: 1 }, 'empty');
-    }
+  const controlPanelProps = {
+    algorithm,
+    setAlgorithm,
+    speed,
+    setSpeed,
+    allowDiagonal,
+    setAllowDiagonal,
+    isSmallScreen,
+    isRunning,
+    runCompleted,
+    onClear,
+    onPlay,
+    selectedWeight,
+    setSelectedWeight,
   };
 
   return (
@@ -306,7 +81,6 @@ export default function HomeScreen() {
           !isSmallScreen && { paddingRight: CONTROL_PANEL_WIDTH },
         ]}
       >
-
         <Title />
         <InstructionBar message={instruction} />
       </View>
@@ -316,31 +90,14 @@ export default function HomeScreen() {
           { flexDirection: isSmallScreen ? 'column' : 'row' },
         ]}
       >
-        
-        {isSmallScreen && (
-          <ControlPanel
-            algorithm={algorithm}
-            setAlgorithm={setAlgorithm}
-            speed={speed}
-            setSpeed={setSpeed}
-            allowDiagonal={allowDiagonal}
-            setAllowDiagonal={setAllowDiagonal}
-            isSmallScreen={isSmallScreen}
-            isRunning={isRunning}
-            runCompleted={runCompleted}
-            onClear={resetGrid}
-            onPlay={handleRunOrReset}
-            selectedWeight={selectedWeight}
-            setSelectedWeight={setSelectedWeight}
-          />
-        )}
+        {isSmallScreen && <ControlPanel {...controlPanelProps} />}
         <View style={styles.gridContainer}>
           <ScrollView horizontal>
             <ScrollView>
               <Grid
                 grid={grid}
                 cellSize={cellSize}
-                onCellPress={handleCellPress}
+                onCellPress={(cell) => handleCellPress(cell, isRunning)}
                 onPressIn={() => setIsPressing(true)}
                 onPressOut={() => setIsPressing(false)}
                 isPressing={isPressing}
@@ -350,25 +107,7 @@ export default function HomeScreen() {
             </ScrollView>
           </ScrollView>
         </View>
-        
-
-        {!isSmallScreen && (
-          <ControlPanel
-            algorithm={algorithm}
-            setAlgorithm={setAlgorithm}
-            speed={speed}
-            setSpeed={setSpeed}
-            allowDiagonal={allowDiagonal}
-            setAllowDiagonal={setAllowDiagonal}
-            isSmallScreen={isSmallScreen}
-            isRunning={isRunning}
-            runCompleted={runCompleted}
-            onClear={resetGrid}
-            onPlay={handleRunOrReset}
-            selectedWeight={selectedWeight}
-            setSelectedWeight={setSelectedWeight}
-          />
-        )}
+        {!isSmallScreen && <ControlPanel {...controlPanelProps} />}
       </View>
       <StatsModal
         visible={showStats}
@@ -379,11 +118,10 @@ export default function HomeScreen() {
       />
       <View style={styles.footer}>
         <Text selectable={false} style={styles.footerText}>
-          © 2026 Antreas Panagi & Michael Panaetov
+          &copy; 2026 Antreas Panagi & Michael Panaetov
         </Text>
       </View>
     </View>
-    
   );
 }
 
@@ -393,7 +131,6 @@ const styles = StyleSheet.create({
     bottom: 8,
     left: 12,
   },
-
   footerText: {
     color: '#00ffcc',
     fontSize: 12,
@@ -413,11 +150,9 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'row',
   },
-
-  
   gridContainer: {
     flex: 1,
-    alignItems: 'center',     
-    justifyContent: 'center', 
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });

@@ -1,6 +1,6 @@
 package com.algofind.util;
 
-import com.algofind.PathfindingRequest.Point;
+import com.algofind.dto.PathfindingRequest.Point;
 
 import java.util.ArrayList;
 import java.util.List;

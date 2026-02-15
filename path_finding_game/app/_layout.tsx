@@ -1,11 +1,14 @@
 import { Stack } from 'expo-router';
+import ErrorBoundary from '../components/ui/ErrorBoundary';
 
 export default function RootLayout() {
   return (
-    <Stack
-      screenOptions={{
-        headerShown: false,
-      }}
-    />
+    <ErrorBoundary>
+      <Stack
+        screenOptions={{
+          headerShown: false,
+        }}
+      />
+    </ErrorBoundary>
   );
 }
