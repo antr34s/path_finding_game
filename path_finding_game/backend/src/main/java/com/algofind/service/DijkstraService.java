@@ -3,23 +3,18 @@ package com.algofind.service;
 import com.algofind.PathfindingRequest;
 import com.algofind.PathfindingRequest.Point;
 import com.algofind.PathfindingResponse;
+import com.algofind.model.GridGraph;
+import com.algofind.util.PathUtils;
 import org.springframework.stereotype.Service;
+
 import java.util.*;
 
 @Service
 public class DijkstraService implements PathfindingService {
 
-    private static final int[][] DIRECTIONS_4 = {{0, 1}, {1, 0}, {0, -1}, {-1, 0}};
-    private static final int[][] DIRECTIONS_8 = {
-        {0, 1}, {1, 0}, {0, -1}, {-1, 0},
-        {1, 1}, {1, -1}, {-1, 1}, {-1, -1}
-    };
-
-    private static final double SQRT2 = Math.sqrt(2);
-
     private static class Node implements Comparable<Node> {
-        Point point;
-        double distance;
+        final Point point;
+        final double distance;
 
         Node(Point point, double distance) {
             this.point = point;
@@ -34,11 +29,9 @@ public class DijkstraService implements PathfindingService {
 
     @Override
     public PathfindingResponse execute(PathfindingRequest request) {
-        int gridSize = request.getGridSize();
+        GridGraph grid = GridGraph.from(request);
         Point start = request.getStart();
         Point end = request.getEnd();
-        Set<Point> barriers = new HashSet<>(request.getBarriers() != null ? request.getBarriers() : new ArrayList<>());
-        boolean allowDiagonal = request.isAllowDiagonal();
 
         PriorityQueue<Node> pq = new PriorityQueue<>();
         Map<Point, Double> distances = new HashMap<>();
@@ -65,14 +58,12 @@ public class DijkstraService implements PathfindingService {
             nodesExplored++;
 
             if (currentPoint.equals(end)) {
-                List<Point> path = reconstructPath(parent, start, end);
+                List<Point> path = PathUtils.reconstructPath(parent, end);
                 return new PathfindingResponse(path, visitedPath, nodesExplored, 0, true, getAlgorithmName());
             }
 
-            List<Point> neighbors = getNeighbors(currentPoint, gridSize, barriers, visited, allowDiagonal);
-
-            for (Point neighbor : neighbors) {
-                double movementCost = isDiagonalMove(currentPoint, neighbor) ? SQRT2 : 1.0;
+            for (Point neighbor : grid.getNeighbors(currentPoint, visited)) {
+                double movementCost = grid.getMovementCost(currentPoint, neighbor);
                 double newDistance = distances.get(currentPoint) + movementCost;
 
                 if (!distances.containsKey(neighbor) || newDistance < distances.get(neighbor)) {
@@ -84,46 +75,6 @@ public class DijkstraService implements PathfindingService {
         }
 
         return new PathfindingResponse(new ArrayList<>(), visitedPath, nodesExplored, 0, false, getAlgorithmName());
-    }
-
-    private List<Point> getNeighbors(Point current, int gridSize, Set<Point> barriers,
-                                     Set<Point> visited, boolean allowDiagonal) {
-        List<Point> neighbors = new ArrayList<>();
-        int[][] directions = allowDiagonal ? DIRECTIONS_8 : DIRECTIONS_4;
-
-        for (int[] direction : directions) {
-            int newX = current.getX() + direction[0];
-            int newY = current.getY() + direction[1];
-            Point neighbor = new Point(newX, newY);
-
-            if (isValid(newX, newY, gridSize) &&
-                !barriers.contains(neighbor) &&
-                !visited.contains(neighbor)) {
-                neighbors.add(neighbor);
-            }
-        }
-
-        return neighbors;
-    }
-
-    private boolean isDiagonalMove(Point from, Point to) {
-        return from.getX() != to.getX() && from.getY() != to.getY();
-    }
-
-    private boolean isValid(int x, int y, int gridSize) {
-        return x >= 0 && x < gridSize && y >= 0 && y < gridSize;
-    }
-
-    private List<Point> reconstructPath(Map<Point, Point> parent, Point start, Point end) {
-        List<Point> path = new ArrayList<>();
-        Point current = end;
-
-        while (current != null) {
-            path.add(0, current);
-            current = parent.get(current);
-        }
-
-        return path;
     }
 
     @Override

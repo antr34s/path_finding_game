@@ -1,5 +1,6 @@
 import { View, Text, StyleSheet, Pressable } from 'react-native';
 import Slider from '@react-native-community/slider';
+import { useState } from 'react';
 
 interface Props {
   algorithm: string;
@@ -34,6 +35,7 @@ export default function ControlPanel({
   selectedWeight,
   setSelectedWeight,
 }: Props) {
+    const [hoveredAlgo, setHoveredAlgo] = useState<string | null>(null);
     const changeWeight = (direction: number) => {
         if (selectedWeight === Infinity) {
             setSelectedWeight(direction === 1 ? 2 : 9);
@@ -55,7 +57,12 @@ export default function ControlPanel({
         setSelectedWeight(newWeight);
         
   };
-    
+    const algoInfo: Record<string, string> = {
+            'A*': 'Heuristic search. Optimal with admissible heuristic.',
+            'DIJKSTRA': 'Weighted shortest path. Always optimal.',
+            'BFS': 'Unweighted shortest path. Optimal for equal weights.',
+            'DFS': 'Depth exploration. Not optimal.',
+    };
   return (
     <View
         style={[
@@ -69,12 +76,21 @@ export default function ControlPanel({
             <Pressable
                 key={algo}
                 onPress={() => setAlgorithm(algo)}
+                onHoverIn={() => setHoveredAlgo(algo)}
+                onHoverOut={() => setHoveredAlgo(null)}
                 style={[
                 styles.button,
                 algorithm === algo && styles.buttonActive,
                 ]}
             >
-                <Text style={styles.buttonText}>{algo}</Text>
+                <Text selectable={false} style={styles.buttonText}>{algo}</Text>
+                {hoveredAlgo === algo && (
+                    <View style={styles.tooltip}>
+                        <Text style={styles.tooltipText}>
+                        {algoInfo[algo]}
+                        </Text>
+                    </View>
+                )}
             </Pressable>
             ))}
         </View>
@@ -88,7 +104,7 @@ export default function ControlPanel({
         >
             {/* Speed */}
             <View style={styles.controlItem}>
-            <Text style={styles.label}>Speed</Text>
+            <Text selectable={false} style={styles.label}>Speed</Text>
             <Slider
                 minimumValue={1}
                 maximumValue={100}
@@ -108,7 +124,7 @@ export default function ControlPanel({
                 allowDiagonal && styles.toggleActive,
             ]}
             >
-            <Text style={styles.buttonText}>
+            <Text selectable={false} style={styles.buttonText}>
                 Diagonal {allowDiagonal ? 'ON' : 'OFF'}
             </Text>
             </Pressable>
@@ -122,11 +138,11 @@ export default function ControlPanel({
                     isRunning && { opacity: 0.5 },
                 ]}
                 >
-                <Text style={styles.playText}>
+                <Text selectable={false} style={styles.playText}>
                     {isRunning
                         ? 'RUNNING...'
                         : runCompleted
-                            ? 'CLEAR'
+                            ? 'RESET'
                             : 'PLAY'
                     }
                 </Text>
@@ -141,22 +157,28 @@ export default function ControlPanel({
                     isRunning && { opacity: 0.5 },
                 ]}
                 >
-                <Text style={styles.buttonText}>
-                    {'RESET'}
+                <Text selectable={false} style={styles.buttonText}>
+                    {'CLEAR'}
                 </Text>
             </Pressable>
-            <View style={styles.weightControl}>
-                <Pressable style={styles.weightButton} onPress={() => changeWeight(-1)}>
-                    <Text selectable={false} style={styles.weightText}>−</Text>
-                </Pressable>
-
-                <Text selectable={false} style={styles.weightDisplay}>
-                    {selectedWeight === Infinity ? '∞' : selectedWeight}
+            <View style={styles.weightWrapper}>
+                <Text selectable={false} style={styles.label}>
+                    Obstacle Cost
                 </Text>
 
-                <Pressable style={styles.weightButton} onPress={() => changeWeight(1)}>
+                <View style={styles.weightControl}>
+                    <Pressable style={styles.weightButton} onPress={() => changeWeight(-1)}>
+                    <Text selectable={false} style={styles.weightText}>−</Text>
+                    </Pressable>
+
+                    <Text selectable={false} style={styles.weightDisplay}>
+                    {selectedWeight === Infinity ? '∞' : selectedWeight}
+                    </Text>
+
+                    <Pressable style={styles.weightButton} onPress={() => changeWeight(1)}>
                     <Text selectable={false} style={styles.weightText}>+</Text>
-                </Pressable>
+                    </Pressable>
+                </View>
             </View>
         </View>
     </View>
@@ -164,12 +186,35 @@ export default function ControlPanel({
 }
 
 const styles = StyleSheet.create({
+    tooltip: {
+        position: 'absolute',
+        right: '100%',
+        marginRight: 8,
+        top: '50%',
+        transform: [{ translateY: -20 }],
+        backgroundColor: '#111',
+        padding: 8,
+        borderRadius: 6,
+        width: 170,
+        borderWidth: 1,
+        borderColor: '#00ffcc',
+        zIndex: 999,
+    },
+    tooltipText: {
+        color: '#00ffcc',
+        fontSize: 10,
+    },
+    weightWrapper: {
+        alignItems: 'center',
+        marginTop: 16,
+        gap: 8,
+    },
     weightControl: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
-        marginTop: 10,
         gap: 10,
+        
     },
     weightButton: {
         borderWidth: 1,
@@ -204,18 +249,22 @@ const styles = StyleSheet.create({
     controlsRowMobile: {
         flexDirection: 'row',
         flexWrap: 'wrap',
-        alignItems: 'center',
-        justifyContent: 'space-between',
+        alignItems: 'stretch',
+        justifyContent: 'center',
+        gap: 10,
     },
 
     controlItem: {
-        minWidth: 120,
+        minWidth: 80,
     },
 
     label: {
-        color: '#aaa',
-        fontSize: 12,
-        marginBottom: 4,
+        color: '#00ffcc',
+        fontSize: 14,
+        fontWeight: '600',
+        marginBottom: 6,
+        textShadowColor: '#00ffcc',
+        textShadowRadius: 4,
     },
     panel: {
         width: 220,
@@ -255,8 +304,11 @@ const styles = StyleSheet.create({
         textAlign: 'center',
     },
     toggle: {
-        marginTop: 16,
-        padding: 10,
+        marginTop: 10,
+        paddingVertical: 12,
+        paddingHorizontal: 10,
+        minHeight: 48,
+        justifyContent: 'center',
         borderWidth: 1,
         borderColor: '#00ffcc',
         borderRadius: 6,
@@ -265,8 +317,11 @@ const styles = StyleSheet.create({
         backgroundColor: '#00ffcc',
     },
     playButton: {
-        marginTop: 20,
-        padding: 12,
+        marginTop: 10,
+        paddingVertical: 12,
+        paddingHorizontal: 10,
+        minHeight: 48,
+        justifyContent: 'center',
         backgroundColor: '#00ffcc',
         borderRadius: 6,
     },
@@ -277,7 +332,10 @@ const styles = StyleSheet.create({
     },
     resetButton: {
         marginTop: 10,
-        padding: 10,
+        paddingVertical: 12,
+        paddingHorizontal: 10,
+        minHeight: 48,
+        justifyContent: 'center',
         borderWidth: 1,
         borderColor: '#ff0055',
         borderRadius: 6,

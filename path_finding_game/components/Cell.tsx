@@ -1,4 +1,4 @@
-import { StyleSheet, Pressable,Text,View } from 'react-native';
+import { StyleSheet, Pressable, Text } from 'react-native';
 import { Cell as CellType } from '../types/grid';
 import { CELL_COLORS } from '../constants/colors';
 
@@ -19,6 +19,15 @@ export default function Cell({
   onPressOut,
   isPressing,
 }: Props) {
+  let background = CELL_COLORS.empty;
+
+  if (cell.type === 'start') background = CELL_COLORS.start;
+  else if (cell.type === 'end') background = CELL_COLORS.end;
+  else if (cell.type === 'obstacle') background = CELL_COLORS.obstacle;
+
+  if (cell.state === 'visited') background = CELL_COLORS.visited;
+  if (cell.state === 'path') background = CELL_COLORS.path;
+
   return (
     <Pressable
       onPressIn={onPressIn}
@@ -30,20 +39,29 @@ export default function Cell({
       style={[
         styles.cell,
         {
-          backgroundColor: CELL_COLORS[cell.type],
+          backgroundColor: background,
           width: size,
           height: size,
         },
       ]}
     >
       {cell.type === 'obstacle' && cell.weight !== Infinity && (
-        <Text selectable={false} style={styles.weightNumber}>{cell.weight}</Text>
+        <Text selectable={false} style={styles.weightNumber}>
+          {cell.weight}
+        </Text>
       )}
     </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
+  cell: {
+    borderWidth: 0.5,
+    borderColor: '#00ffcc',
+    alignItems: 'center',
+    justifyContent: 'center',
+    userSelect: 'none',
+  },
   weightNumber: {
     color: '#000',
     fontSize: 12,
@@ -51,9 +69,5 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     textShadowColor: '#ff00ff',
     textShadowRadius: 4,
-  },
-  cell: {
-    borderWidth: 0.5,
-    borderColor: '#00ffcc',
   },
 });

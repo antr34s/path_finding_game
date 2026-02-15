@@ -1,34 +1,22 @@
 package com.algofind.service;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import org.springframework.stereotype.Service;
-
 import com.algofind.PathfindingRequest;
 import com.algofind.PathfindingRequest.Point;
 import com.algofind.PathfindingResponse;
+import com.algofind.model.GridGraph;
+import com.algofind.util.PathUtils;
+import org.springframework.stereotype.Service;
+
+import java.util.*;
 
 @Service
 public class DFSService implements PathfindingService {
 
-    private static final int[][] DIRECTIONS_4 = {{0, 1}, {1, 0}, {0, -1}, {-1, 0}};
-    private static final int[][] DIRECTIONS_8 = {
-        {0, 1}, {1, 0}, {0, -1}, {-1, 0},
-        {1, 1}, {1, -1}, {-1, 1}, {-1, -1}
-    };
-
     @Override
     public PathfindingResponse execute(PathfindingRequest request) {
-        int gridSize = request.getGridSize();
+        GridGraph grid = GridGraph.from(request);
         Point start = request.getStart();
         Point end = request.getEnd();
-        Set<Point> barriers = new HashSet<>(request.getBarriers() != null ? request.getBarriers() : new ArrayList<>());
-        boolean allowDiagonal = request.isAllowDiagonal();
 
         Set<Point> visited = new HashSet<>();
         Map<Point, Point> parent = new HashMap<>();
@@ -38,64 +26,39 @@ public class DFSService implements PathfindingService {
         visitedPath.add(start);
         parent.put(start, null);
 
-        boolean found = dfs(start, end, gridSize, barriers, visited, parent, visitedPath, allowDiagonal);
+        boolean found = dfs(grid, start, end, visited, parent, visitedPath);
 
         if (found) {
-            List<Point> path = reconstructPath(parent, start, end);
+            List<Point> path = PathUtils.reconstructPath(parent, end);
             return new PathfindingResponse(path, visitedPath, visitedPath.size(), 0, true, getAlgorithmName());
         }
 
         return new PathfindingResponse(new ArrayList<>(), visitedPath, visitedPath.size(), 0, false, getAlgorithmName());
     }
 
-    @Override
-    public String getAlgorithmName() {
-        return "DFS";
-    }
-
-    private boolean dfs(Point current, Point end, int gridSize, Set<Point> barriers,
-                       Set<Point> visited, Map<Point, Point> parent, List<Point> visitedPath, boolean allowDiagonal) {
+    private boolean dfs(GridGraph grid, Point current, Point end,
+                        Set<Point> visited, Map<Point, Point> parent,
+                        List<Point> visitedPath) {
         if (current.equals(end)) {
             return true;
         }
 
-        int[][] directions = allowDiagonal ? DIRECTIONS_8 : DIRECTIONS_4;
+        for (Point neighbor : grid.getNeighbors(current, visited)) {
+            if (visited.contains(neighbor)) continue;
+            visited.add(neighbor);
+            visitedPath.add(neighbor);
+            parent.put(neighbor, current);
 
-        for (int[] direction : directions) {
-            int newX = current.getX() + direction[0];
-            int newY = current.getY() + direction[1];
-            Point neighbor = new Point(newX, newY);
-
-            if (isValid(newX, newY, gridSize) &&
-                !barriers.contains(neighbor) &&
-                !visited.contains(neighbor)) {
-
-                visited.add(neighbor);
-                visitedPath.add(neighbor);
-                parent.put(neighbor, current);
-
-                if (dfs(neighbor, end, gridSize, barriers, visited, parent, visitedPath, allowDiagonal)) {
-                    return true;
-                }
+            if (dfs(grid, neighbor, end, visited, parent, visitedPath)) {
+                return true;
             }
         }
 
         return false;
     }
 
-    private boolean isValid(int x, int y, int gridSize) {
-        return x >= 0 && x < gridSize && y >= 0 && y < gridSize;
-    }
-
-    private List<Point> reconstructPath(Map<Point, Point> parent, Point start, Point end) {
-        List<Point> path = new ArrayList<>();
-        Point current = end;
-
-        while (current != null) {
-            path.add(0, current);
-            current = parent.get(current);
-        }
-
-        return path;
+    @Override
+    public String getAlgorithmName() {
+        return "DFS";
     }
 }

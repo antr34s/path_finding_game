@@ -11,4 +11,5 @@ export interface Cell {
   col: number;
   type: CellType;
   weight: number;
+  state?: 'visited' | 'path';
 }
