@@ -1,6 +1,6 @@
 package com.algofind.service;
 
-import com.algofind.PathfindingRequest;
+import com.algofind.dto.PathfindingRequest;
 import org.springframework.stereotype.Component;
 import java.util.HashMap;
 import java.util.List;
