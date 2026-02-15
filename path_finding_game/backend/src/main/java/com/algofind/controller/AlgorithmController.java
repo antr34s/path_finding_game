@@ -1,7 +1,10 @@
-package com.algofind;
+package com.algofind.controller;
 
+import com.algofind.dto.PathfindingRequest;
+import com.algofind.dto.PathfindingResponse;
 import com.algofind.service.PathfindingService;
 import com.algofind.service.PathfindingServiceFactory;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -9,9 +12,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
 
-@CrossOrigin(origins = "http://localhost:8081")
 @RestController
 @RequestMapping("/api")
 public class AlgorithmController {
@@ -20,18 +21,14 @@ public class AlgorithmController {
     private PathfindingServiceFactory serviceFactory;
 
     @PostMapping("/pathfind")
-    public ResponseEntity<PathfindingResponse> findPath(@RequestBody PathfindingRequest request) {
-        try {
-            long startTime = System.currentTimeMillis();
+    public ResponseEntity<PathfindingResponse> findPath(@Valid @RequestBody PathfindingRequest request) {
+        long startTime = System.currentTimeMillis();
 
-            PathfindingService service = serviceFactory.getService(request.getAlgorithm());
-            PathfindingResponse response = service.execute(request);
+        PathfindingService service = serviceFactory.getService(request.getAlgorithm());
+        PathfindingResponse response = service.execute(request);
 
-            response.setExecutionTimeMs(System.currentTimeMillis() - startTime);
-            return ResponseEntity.ok(response);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().build();
-        }
+        response.setExecutionTimeMs(System.currentTimeMillis() - startTime);
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/algorithms")

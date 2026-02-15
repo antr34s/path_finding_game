@@ -1,7 +1,7 @@
 package com.algofind.model;
 
-import com.algofind.PathfindingRequest;
-import com.algofind.PathfindingRequest.Point;
+import com.algofind.dto.PathfindingRequest;
+import com.algofind.dto.PathfindingRequest.Point;
 
 import java.util.ArrayList;
 import java.util.HashMap;

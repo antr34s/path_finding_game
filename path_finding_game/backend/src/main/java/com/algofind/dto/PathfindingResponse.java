@@ -1,4 +1,4 @@
-package com.algofind;
+package com.algofind.dto;
 
 import java.util.List;
 

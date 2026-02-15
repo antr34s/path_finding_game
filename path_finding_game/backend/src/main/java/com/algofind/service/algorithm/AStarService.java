@@ -1,9 +1,10 @@
-package com.algofind.service;
+package com.algofind.service.algorithm;
 
-import com.algofind.PathfindingRequest;
-import com.algofind.PathfindingRequest.Point;
-import com.algofind.PathfindingResponse;
+import com.algofind.dto.PathfindingRequest;
+import com.algofind.dto.PathfindingRequest.Point;
+import com.algofind.dto.PathfindingResponse;
 import com.algofind.model.GridGraph;
+import com.algofind.service.PathfindingService;
 import com.algofind.util.PathUtils;
 import org.springframework.stereotype.Service;
 

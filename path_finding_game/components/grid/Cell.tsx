@@ -1,6 +1,6 @@
 import { StyleSheet, Pressable, Text } from 'react-native';
-import { Cell as CellType } from '../types/grid';
-import { CELL_COLORS } from '../constants/colors';
+import { Cell as CellType } from '../../types/grid';
+import { CELL_COLORS } from '../../constants/colors';
 
 interface Props {
   cell: CellType;

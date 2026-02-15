@@ -1,6 +1,6 @@
 import { View, StyleSheet } from 'react-native';
 import Cell from './Cell';
-import { Cell as CellType } from '../types/grid';
+import { Cell as CellType } from '../../types/grid';
 
 interface Props {
   grid: CellType[][];
