@@ -3,8 +3,8 @@ import { Text, View, StyleSheet } from 'react-native';
 export default function Title() {
   return (
     <View style={styles.container}>
-      <Text style={styles.glow}>PATHFINDER</Text>
-      <Text style={styles.sub}>Algorithm Visualizer</Text>
+      <Text style={styles.glow}>ALGOGRAPH</Text>
+      <Text style={styles.sub}>Path Finding Algorithm Visualizer</Text>
     </View>
   );
 }

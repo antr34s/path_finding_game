@@ -25,7 +25,7 @@ export function usePathfinding({
 }: UsePathfindingParams) {
   const [isRunning, setIsRunning] = useState(false);
   const [runCompleted, setRunCompleted] = useState(false);
-  const [instruction, setInstruction] = useState('Place the starting node');
+  const [instruction, setInstruction] = useState('Click where you want to place the starting point\n ');
   const [showStats, setShowStats] = useState(false);
   const [stats, setStats] = useState<RunStats>({
     algorithm: 'A*',
@@ -37,24 +37,24 @@ export function usePathfinding({
 
   useEffect(() => {
     if (isRunning) {
-      setInstruction('Visualizing algorithm...');
+      setInstruction('Visualizing algorithm...\n ');
       return;
     }
 
     if (runCompleted) {
       setInstruction(
-        'Press RESET to remove the visited cells or CLEAR to empty the grid'
+        'Press RESET to remove the visited cells or CLEAR to empty the grid\n '
       );
       return;
     }
 
     if (!startSet) {
-      setInstruction('Click where you want to place the starting point');
+      setInstruction('Click where you want to place the starting point\n ');
     } else if (!endSet) {
-      setInstruction('Click where you want to place the ending point');
+      setInstruction('Click where you want to place the ending point\n ');
     } else {
       setInstruction(
-        "Choose the obstacles' cost on the right side and click to place them or press PLAY"
+        "Choose the obstacles' cost on the right side and click to place them or press PLAY\nThe algorithm will find a path from the starting to the ending point."
       );
     }
   }, [startSet, endSet, isRunning, runCompleted]);
@@ -132,7 +132,7 @@ export function usePathfinding({
 
       setRunCompleted(true);
       setInstruction(
-        'Press RESET to remove the visited cells or CLEAR to empty the grid'
+        'Press RESET to remove the visited cells or CLEAR to empty the grid\n '
       );
       setIsRunning(false);
 
