@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import OnboardingGuide from '../components/ui/OnboardingGuide';
 import Grid from '../components/grid/Grid';
 import ControlPanel from '../components/ui/ControlPanel';
 import InstructionBar from '../components/ui/InstructionBar';
@@ -75,6 +76,7 @@ export default function HomeScreen() {
 
   return (
     <View style={styles.container}>
+      <OnboardingGuide />
       <View
         style={[
           styles.header,
