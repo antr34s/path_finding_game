@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import ThreeBackground from '../components/Background';
 import OnboardingGuide from '../components/ui/OnboardingGuide';
 import Grid from '../components/grid/Grid';
 import ControlPanel from '../components/ui/ControlPanel';
@@ -76,6 +77,7 @@ export default function HomeScreen() {
 
   return (
     <View style={styles.container}>
+      <ThreeBackground />
       <OnboardingGuide />
       <View
         style={[

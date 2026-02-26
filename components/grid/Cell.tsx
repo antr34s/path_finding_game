@@ -1,6 +1,21 @@
-import { StyleSheet, Pressable, Text } from 'react-native';
+import { Platform, StyleSheet, Pressable, Text } from 'react-native';
 import { Cell as CellType } from '../../types/grid';
 import { CELL_COLORS } from '../../constants/colors';
+
+function getWebShadow(cell: CellType): object {
+  if (Platform.OS !== 'web') return {};
+  if (cell.state === 'path')
+    return { boxShadow: '0 0 10px rgba(255,242,0,0.85), 0 0 22px rgba(255,242,0,0.35), 0 3px 8px rgba(0,0,0,0.7)' };
+  if (cell.state === 'visited')
+    return { boxShadow: '0 0 6px rgba(59,140,255,0.65), 0 2px 6px rgba(0,0,0,0.55)' };
+  if (cell.type === 'start')
+    return { boxShadow: '0 0 10px rgba(0,255,213,0.8), 0 2px 8px rgba(0,0,0,0.5)' };
+  if (cell.type === 'end')
+    return { boxShadow: '0 0 10px rgba(255,0,110,0.8), 0 2px 8px rgba(0,0,0,0.5)' };
+  if (cell.type === 'obstacle')
+    return { boxShadow: 'inset 0 2px 7px rgba(0,0,0,0.9), inset 0 1px 3px rgba(0,0,0,0.7)' };
+  return {};
+}
 
 interface Props {
   cell: CellType;
@@ -43,6 +58,7 @@ export default function Cell({
           width: size,
           height: size,
         },
+        getWebShadow(cell) as any,
       ]}
     >
       {cell.type === 'obstacle' && cell.weight !== Infinity && (
