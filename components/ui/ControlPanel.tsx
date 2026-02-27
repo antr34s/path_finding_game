@@ -42,7 +42,7 @@ export default function ControlPanel({
     );
     const [hoveredAlgo, setHoveredAlgo] = useState<string | null>(null);
     const [hoverDiagonal, setHoverDiagonal] = useState(false);
-    const [collapsed, setCollapsed] = useState(false);
+    const [collapsed, setCollapsed] = useState(true);
     const MIN_WEIGHT = 2;
     const MAX_WEIGHT = 9;
 
@@ -173,7 +173,7 @@ export default function ControlPanel({
                 >
                 <Text selectable={false} style={styles.playText}>
                     {isRunning
-                        ? 'RUNNING...'
+                        ? 'RUNNING'
                         : runCompleted
                             ? 'RESET'
                             : 'PLAY'
@@ -209,7 +209,7 @@ export default function ControlPanel({
                         setSelectedWeight(newValue ? Infinity : 2);
                     }}
                     >
-                    <Text style={styles.buttonText}>
+                    <Text selectable={false} style={styles.buttonText}>
                         Infinite Cost {infiniteMode ? 'ON' : 'OFF'}
                     </Text>
                 </Pressable>

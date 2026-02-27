@@ -4,7 +4,6 @@ import ThreeBackground from '../components/Background';
 import OnboardingGuide from '../components/ui/OnboardingGuide';
 import Grid from '../components/grid/Grid';
 import ControlPanel from '../components/ui/ControlPanel';
-import InstructionBar from '../components/ui/InstructionBar';
 import StatsModal from '../components/ui/StatsModal';
 import Title from '../components/ui/Title';
 import { useGrid } from '../hooks/useGrid';
@@ -14,7 +13,7 @@ import { GRID_SIZE } from '../utils/createGrid';
 export default function HomeScreen() {
   const [algorithm, setAlgorithm] = useState('A*');
   const [speed, setSpeed] = useState(50);
-  const [selectedWeight, setSelectedWeight] = useState(Infinity);
+  const [selectedWeight, setSelectedWeight] = useState(2);
   const [allowDiagonal, setAllowDiagonal] = useState(false);
 
   const {
@@ -24,7 +23,7 @@ export default function HomeScreen() {
   } = useGrid(algorithm, allowDiagonal, selectedWeight);
 
   const {
-    isRunning, runCompleted, instruction,
+    isRunning, runCompleted,
     stats, showStats, setShowStats,
     handleRunOrReset, reset,
   } = usePathfinding({ grid, setGrid, speed, algorithm, startSet, endSet, buildRequest });
@@ -32,7 +31,7 @@ export default function HomeScreen() {
   const { width, height } = useWindowDimensions();
   const CELL_BORDER = 0.5;
   const GRID_PADDING = 10;
-  const HEADER_HEIGHT = 120;
+  const HEADER_HEIGHT = 80;
   const CONTROL_PANEL_WIDTH = 220;
   const CONTROL_PANEL_HEIGHT = 120;
   const isSmallScreen = width < 768;
@@ -86,7 +85,6 @@ export default function HomeScreen() {
         ]}
       >
         <Title />
-        <InstructionBar message={instruction} />
       </View>
       <View
         style={[

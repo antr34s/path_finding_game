@@ -18,13 +18,13 @@ const STEPS = [
     color: '#e6e6e6',
     number: '3',
     title: 'Draw Obstacles',
-    desc: 'Click and drag to build walls the algorithm must navigate around.',
+    desc: 'Click and drag to build walls the algorithm must navigate around. You can change the cost of the wall in the controls.',
   },
   {
     color: '#00ffcc',
     number: '4',
     title: 'Choose & Run',
-    desc: 'Pick A*, Dijkstra, BFS, or DFS — then press Play!',
+    desc: 'Pick an algorithm from A*, Dijkstra, BFS, or DFS and then press Play!',
   },
 ];
 
@@ -39,9 +39,13 @@ export default function OnboardingGuide() {
     setVisible(false);
   };
 
-  if (!visible) return null;
+
 
   return (
+    <>
+    <Pressable style={styles.infoButton} onPress={() => setVisible(true)}>
+        <Text style={styles.infoText}>i</Text>
+    </Pressable>
     <Modal transparent animationType="fade" visible={visible}>
       <View style={styles.overlay}>
         <View
@@ -81,10 +85,28 @@ export default function OnboardingGuide() {
         </View>
       </View>
     </Modal>
+    </>
   );
 }
 
 const styles = StyleSheet.create({
+    infoButton: {
+    position: 'absolute',
+    top: 16,
+    left: 16,
+    width: 50,
+    height: 50,
+    borderRadius: 20,
+    backgroundColor: '#00ffcc',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 1000,
+  },
+  infoText: {
+    color: '#05010a',
+    fontSize: 24,
+    fontWeight: 'bold',
+  },
   overlay: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.72)',

@@ -25,7 +25,6 @@ export function usePathfinding({
 }: UsePathfindingParams) {
   const [isRunning, setIsRunning] = useState(false);
   const [runCompleted, setRunCompleted] = useState(false);
-  const [instruction, setInstruction] = useState('Click where you want to place the starting point\n ');
   const [showStats, setShowStats] = useState(false);
   const [stats, setStats] = useState<RunStats>({
     algorithm: 'A*',
@@ -34,30 +33,6 @@ export function usePathfinding({
     pathWeight: 0,
     gridSize: `${GRID_SIZE} x ${GRID_SIZE}`,
   });
-
-  useEffect(() => {
-    if (isRunning) {
-      setInstruction('Visualizing algorithm...\n ');
-      return;
-    }
-
-    if (runCompleted) {
-      setInstruction(
-        'Press RESET to remove the visited cells or CLEAR to empty the grid\n '
-      );
-      return;
-    }
-
-    if (!startSet) {
-      setInstruction('Click where you want to place the starting point\n ');
-    } else if (!endSet) {
-      setInstruction('Click where you want to place the ending point\n ');
-    } else {
-      setInstruction(
-        "Choose the obstacles' cost on the right side and click to place them or press PLAY\nThe algorithm will find a path from the starting to the ending point."
-      );
-    }
-  }, [startSet, endSet, isRunning, runCompleted]);
 
   const getBatchSize = () => {
     if (speed < 20) return 1;
@@ -131,9 +106,6 @@ export function usePathfinding({
       await animatePath(data.path);
 
       setRunCompleted(true);
-      setInstruction(
-        'Press RESET to remove the visited cells or CLEAR to empty the grid\n '
-      );
       setIsRunning(false);
 
       await new Promise(res => setTimeout(res, 1500));
@@ -169,11 +141,7 @@ export function usePathfinding({
 
       setShowStats(true);
     } catch (error: any) {
-      if (error?.name === 'AbortError') {
-        setInstruction('Request timed out. Please try again.');
-      } else {
-        setInstruction(error?.message ?? 'Error running algorithm');
-      }
+      
     } finally {
       setIsRunning(false);
     }
@@ -196,7 +164,6 @@ export function usePathfinding({
   return {
     isRunning,
     runCompleted,
-    instruction,
     stats,
     showStats,
     setShowStats,
