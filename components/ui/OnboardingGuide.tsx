@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
+import { useWindowDimensions } from 'react-native';
 
 const STEPS = [
   {
@@ -18,7 +19,7 @@ const STEPS = [
     color: '#e6e6e6',
     number: '3',
     title: 'Draw Obstacles',
-    desc: 'Click and drag to build walls the algorithm must navigate around. You can change the cost of the wall in the controls.',
+    desc: 'Click and drag to build obstacles.  You can change the cost of the obstacles in the controls. Toggling the infinite cost on will make them walls and the algorithm must navigate around them.',
   },
   {
     color: '#00ffcc',
@@ -29,15 +30,14 @@ const STEPS = [
 ];
 
 export default function OnboardingGuide() {
-  const [visible, setVisible] = useState(false);
+    const [visible, setVisible] = useState(false);
+    useEffect(() => {
+        setVisible(true);
+    }, []);
 
-  useEffect(() => {
-    setVisible(true);
-  }, []);
-
-  const dismiss = () => {
-    setVisible(false);
-  };
+    const dismiss = () => {
+        setVisible(false);
+};
 
 
 
@@ -94,8 +94,8 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 16,
     left: 16,
-    width: 50,
-    height: 50,
+    width: 30,
+    height: 30,
     borderRadius: 20,
     backgroundColor: '#00ffcc',
     alignItems: 'center',

@@ -252,9 +252,9 @@ const styles = StyleSheet.create({
     },
     tooltip: {
         position: 'absolute',
-        right: '100%',
+        right: '80%',
         marginRight: 8,
-        top: '50%',
+        top: '0%',
         transform: [{ translateY: -20 }],
         backgroundColor: '#111',
         padding: 8,
@@ -271,9 +271,9 @@ const styles = StyleSheet.create({
     weightWrapper: {
         alignItems: 'center',
         marginTop: 16,
-        gap: 8,
     },
     weightControl: {
+        marginTop: 8,
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
@@ -305,7 +305,7 @@ const styles = StyleSheet.create({
     },
 
     controlsRow: {
-        marginTop: 12,
+        marginTop: 1,
         flexDirection: 'column',
         gap: 10,
     },
@@ -326,7 +326,7 @@ const styles = StyleSheet.create({
         color: '#00ffcc',
         fontSize: 14,
         fontWeight: '600',
-        marginBottom: 6,
+        marginBottom: 0,
         textShadowColor: '#00ffcc',
         textShadowRadius: 4,
     },

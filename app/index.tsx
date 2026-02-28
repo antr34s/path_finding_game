@@ -37,17 +37,17 @@ export default function HomeScreen() {
   const isSmallScreen = width < 768;
 
   const availableWidth = isSmallScreen
-    ? width - GRID_PADDING * 2 - 20
+    ? width
     : width - CONTROL_PANEL_WIDTH - GRID_PADDING * 2;
 
-  const availableHeight = isSmallScreen
-    ? height - HEADER_HEIGHT - CONTROL_PANEL_HEIGHT - GRID_PADDING * 2 - 20
+  const availableHeight =isSmallScreen
+    ? height
     : height - HEADER_HEIGHT - GRID_PADDING * 2;
 
   const cellSize = Math.floor(
     Math.min(
-      availableWidth / GRID_SIZE - CELL_BORDER * 2,
-      availableHeight / GRID_SIZE - CELL_BORDER * 2
+      availableWidth / GRID_SIZE - CELL_BORDER ,
+      availableHeight / GRID_SIZE - CELL_BORDER 
     )
   );
 
@@ -75,7 +75,10 @@ export default function HomeScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <ScrollView
+      style={styles.container}
+      showsVerticalScrollIndicator={false}
+    >
       <ThreeBackground />
       <OnboardingGuide />
       <View
@@ -94,44 +97,39 @@ export default function HomeScreen() {
       >
         {isSmallScreen && <ControlPanel {...controlPanelProps} />}
         <View style={styles.gridContainer}>
-          <ScrollView horizontal>
-            <ScrollView>
-              <Grid
-                grid={grid}
-                cellSize={cellSize}
-                onCellPress={(cell) => handleCellPress(cell, isRunning)}
-                onPressIn={() => setIsPressing(true)}
-                onPressOut={() => setIsPressing(false)}
-                isPressing={isPressing}
-                isRunning={isRunning}
-                selectedWeight={selectedWeight}
-              />
-            </ScrollView>
-          </ScrollView>
+            <Grid
+              grid={grid}
+              cellSize={cellSize}
+              onCellPress={(cell) => handleCellPress(cell, isRunning)}
+              onPressIn={() => setIsPressing(true)}
+              onPressOut={() => setIsPressing(false)}
+              isPressing={isPressing}
+              isRunning={isRunning}
+              selectedWeight={selectedWeight}
+            />
         </View>
         {!isSmallScreen && <ControlPanel {...controlPanelProps} />}
-      </View>
-      <StatsModal
-        visible={showStats}
-        onClose={() => setShowStats(false)}
-        stats={stats}
-        isSmallScreen={isSmallScreen}
-        controlPanelWidth={CONTROL_PANEL_WIDTH}
-      />
-      <View style={styles.footer}>
-        <Text selectable={false} style={styles.footerText}>
-          &copy; 2026 Antreas Panagi & Michael Panaetov
-        </Text>
-      </View>
-    </View>
+        </View>
+        <StatsModal
+          visible={showStats}
+          onClose={() => setShowStats(false)}
+          stats={stats}
+          isSmallScreen={isSmallScreen}
+          controlPanelWidth={CONTROL_PANEL_WIDTH}
+        />
+        <View style={styles.footer}>
+          <Text selectable={false} style={styles.footerText}>
+            &copy; 2026 Antreas Panagi & Michael Panaetov
+          </Text>
+        </View>
+      </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   footer: {
-    position: 'absolute',
-    bottom: 8,
-    left: 12,
+    marginTop: 10,
+    marginLeft: 10,
   },
   footerText: {
     color: '#00ffcc',

@@ -34,7 +34,7 @@ export function useGrid(algorithm: string, allowDiagonal: boolean, selectedWeigh
       return;
     }
 
-    if (!endSet) {
+    if (!endSet && cell.type === 'empty') {
       updateCell(cell, 'end');
       setEndSet(true);
       return;
